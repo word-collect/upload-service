@@ -1,5 +1,5 @@
 // lib/upload-stack.ts
-import { Stack, StackProps, Duration } from 'aws-cdk-lib'
+import { Stack, StackProps, Duration, Fn } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import * as s3 from 'aws-cdk-lib/aws-s3'
 import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs'
@@ -71,7 +71,7 @@ export class UploadStack extends Stack {
     const eventBus = events.EventBus.fromEventBusName(
       this,
       'SharedEventBus',
-      `${appName}-${environment}-event-bus-name`
+      Fn.importValue(`${appName}-${environment}-event-bus-name`)
     )
 
     // 3️⃣  Forward only *our* upload events (prefix "raw/") to the custom bus
