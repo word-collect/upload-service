@@ -23,7 +23,10 @@ export class UploadStack extends Stack {
       cors: [
         {
           allowedMethods: [s3.HttpMethods.PUT],
-          allowedOrigins: ['https://wordcollect.haydenturek.com'], // tighten later
+          allowedOrigins: [
+            'https://wordcollect.haydenturek.com',
+            'http://localhost:3000'
+          ], // tighten later
           allowedHeaders: ['*'],
           maxAge: 3600
         }
