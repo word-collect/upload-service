@@ -76,7 +76,7 @@ export class UploadStack extends Stack {
 
     // 3️⃣  Forward only *our* upload events (prefix "raw/") to the custom bus
     new events.Rule(this, 'ForwardUploadsRule', {
-      eventBus,
+      eventBus: events.EventBus.fromEventBusName(this, 'DefaultBus', 'default'),
       eventPattern: {
         source: ['aws.s3'],
         detailType: ['Object Created'],
