@@ -27,7 +27,7 @@ export class UploadStack extends Stack {
 
     // 2. Lambda that emits a pre-signed PUT URL
     const requestUrlFn = new lambda.NodejsFunction(this, 'RequestUrlFn', {
-      entry: 'src/requestUploadUrl.ts',
+      entry: 'src/get-upload-url.ts',
       timeout: Duration.seconds(10),
       environment: {
         BUCKET_NAME: bucket.bucketName,
