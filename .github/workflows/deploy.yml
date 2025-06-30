@@ -12,7 +12,6 @@ permissions: # required for OIDC
 env:
   # Change to the AWS account + region where you bootstrapped CDK
   AWS_REGION: us-east-1
-  CDK_STACK_NAME: UploadStack # the “id” you used in your CDK app
   # Optional: disable CDK’s “Are you sure?” prompts in CI
   CI: 'true'
 
@@ -43,13 +42,10 @@ jobs:
       - name: Build (tsc)
         run: npm run build
 
-      - name: CDK synth (fails if stack has errors)
-        run: npx cdk synth ${{ env.CDK_STACK_NAME }} --quiet
-
       # Optional: run unit tests if you have them
       # - name: npm test
       #   run: npm test
 
       # ---------- Deploy ----------
       - name: CDK deploy (auto-approve)
-        run: npx cdk deploy ${{ env.CDK_STACK_NAME }} --require-approval never
+        run: npx cdk deploy --all --require-approval never

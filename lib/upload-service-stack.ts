@@ -7,8 +7,13 @@ import * as apigw from 'aws-cdk-lib/aws-apigatewayv2'
 import * as integ from 'aws-cdk-lib/aws-apigatewayv2-integrations'
 import * as ssm from 'aws-cdk-lib/aws-ssm'
 
+export interface UploadStackProps extends StackProps {
+  appName: string
+  environment: string
+}
+
 export class UploadStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: UploadStackProps) {
     super(scope, id, props)
 
     // 1. Bucket
