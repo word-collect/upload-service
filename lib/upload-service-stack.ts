@@ -6,6 +6,8 @@ import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as apigw from 'aws-cdk-lib/aws-apigatewayv2'
 import * as integ from 'aws-cdk-lib/aws-apigatewayv2-integrations'
 import * as ssm from 'aws-cdk-lib/aws-ssm'
+import * as events from 'aws-cdk-lib/aws-events'
+import * as targets from 'aws-cdk-lib/aws-events-targets'
 
 export interface UploadStackProps extends StackProps {
   appName: string
@@ -15,6 +17,8 @@ export interface UploadStackProps extends StackProps {
 export class UploadStack extends Stack {
   constructor(scope: Construct, id: string, props: UploadStackProps) {
     super(scope, id, props)
+
+    const { appName, environment } = props
 
     // 1. Bucket
     const bucket = new s3.Bucket(this, 'Uploads', {
@@ -59,6 +63,29 @@ export class UploadStack extends Stack {
     new ssm.StringParameter(this, 'UploadApiParam', {
       parameterName: '/wordcollect/upload-service/apiEndpoint',
       stringValue: api.apiEndpoint
+    })
+
+    // 1️⃣  Let S3 fire events onto the **default** EventBridge bus
+    bucket.enableEventBridgeNotification()
+
+    const eventBus = events.EventBus.fromEventBusName(
+      this,
+      'SharedEventBus',
+      `${appName}-${environment}-event-bus-name`
+    )
+
+    // 3️⃣  Forward only *our* upload events (prefix "raw/") to the custom bus
+    new events.Rule(this, 'ForwardUploadsRule', {
+      eventBus,
+      eventPattern: {
+        source: ['aws.s3'],
+        detailType: ['Object Created'],
+        detail: {
+          bucket: { name: [bucket.bucketName] },
+          object: { key: [{ prefix: 'raw/' }] }
+        }
+      },
+      targets: [new targets.EventBus(eventBus)]
     })
   }
 }
