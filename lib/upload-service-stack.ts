@@ -65,6 +65,11 @@ export class UploadStack extends Stack {
       stringValue: api.apiEndpoint
     })
 
+    new ssm.StringParameter(this, 'BucketARNParam', {
+      parameterName: `/${appName}/${environment}/upload-service/bucket-arn`,
+      stringValue: bucket.bucketArn
+    })
+
     // 1️⃣  Let S3 fire events onto the **default** EventBridge bus
     bucket.enableEventBridgeNotification()
 
