@@ -61,7 +61,7 @@ export class UploadStack extends Stack {
 
     // 4. Publish the endpoint so other stacks can read it
     new ssm.StringParameter(this, 'UploadApiParam', {
-      parameterName: '/wordcollect/upload-service/apiEndpoint',
+      parameterName: `/${appName}/${environment}/upload-service/api-endpoint`,
       stringValue: api.apiEndpoint
     })
 
