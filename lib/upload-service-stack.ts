@@ -3,11 +3,12 @@ import { Stack, StackProps, Duration, Fn } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import * as s3 from 'aws-cdk-lib/aws-s3'
 import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs'
-import * as apigw from 'aws-cdk-lib/aws-apigatewayv2'
+import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2'
 import * as integ from 'aws-cdk-lib/aws-apigatewayv2-integrations'
 import * as ssm from 'aws-cdk-lib/aws-ssm'
 import * as events from 'aws-cdk-lib/aws-events'
 import * as targets from 'aws-cdk-lib/aws-events-targets'
+import * as apigwAuth from 'aws-cdk-lib/aws-apigatewayv2-authorizers'
 
 export interface UploadStackProps extends StackProps {
   appName: string
@@ -48,15 +49,48 @@ export class UploadStack extends Stack {
     })
     bucket.grantPut(requestUrlFn)
 
-    // 3. Tiny HTTP API
-    const api = new apigw.HttpApi(this, 'UploadApi')
+    // 3. Tiny HTTP API  ➜  SECURED BY COGNITO JWT  ───────────────────────
+
+    // (a) look up the Cognito pool + client that your user-service stack created
+    const poolId = ssm.StringParameter.valueForStringParameter(
+      this,
+      `/${appName}/${environment}/user-service/userPoolId`
+    )
+    const clientId = ssm.StringParameter.valueForStringParameter(
+      this,
+      `/${appName}/${environment}/user-service/appClientId`
+    )
+
+    const api = new apigwv2.HttpApi(this, 'Api', {
+      corsPreflight: {
+        allowOrigins: [
+          'https://wordcollect.haydenturek.com',
+          'http://localhost:3000'
+        ],
+        allowMethods: [
+          apigwv2.CorsHttpMethod.GET,
+          apigwv2.CorsHttpMethod.OPTIONS
+        ],
+        allowHeaders: ['authorization', 'content-type'],
+        allowCredentials: true
+      }
+    })
+
+    const authorizer = new apigwAuth.HttpJwtAuthorizer(
+      'JwtAuth',
+      `https://cognito-idp.${this.region}.amazonaws.com/${poolId}`,
+      { jwtAudience: [clientId] }
+    )
+
+    // (c) wire the route through that authoriser
     api.addRoutes({
       path: '/upload-url',
-      methods: [apigw.HttpMethod.GET],
+      methods: [apigwv2.HttpMethod.GET],
       integration: new integ.HttpLambdaIntegration(
         'RequestUrlIntegration',
         requestUrlFn
-      )
+      ),
+      authorizer
     })
 
     // 4. Publish the endpoint so other stacks can read it
