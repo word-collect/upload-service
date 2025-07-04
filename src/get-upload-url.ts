@@ -5,8 +5,9 @@ import { v4 as uuidv4 } from 'uuid'
 
 const s3 = new S3Client({})
 
-export const handler = async () => {
-  const key = `raw/${uuidv4()}`
+export const handler = async (event: any) => {
+  const sub = (event.requestContext.authorizer!.jwt as any).claims.sub as string
+  const key = `raw/${sub}/${uuidv4()}`
   const command = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME!,
     Key: key,
