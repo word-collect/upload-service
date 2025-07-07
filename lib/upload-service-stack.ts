@@ -30,7 +30,8 @@ export class UploadStack extends Stack {
           allowedMethods: [s3.HttpMethods.PUT],
           allowedOrigins: [
             'https://wordcollect.haydenturek.com',
-            'http://localhost:3000'
+            'http://localhost:3000',
+            'https://immense-bear-stirring.ngrok-free.app'
           ], // tighten later
           allowedHeaders: ['*'],
           maxAge: 3600
