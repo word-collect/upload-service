@@ -65,7 +65,8 @@ export class UploadStack extends Stack {
       corsPreflight: {
         allowOrigins: [
           'https://wordcollect.haydenturek.com',
-          'http://localhost:3000'
+          'http://localhost:3000',
+          'https://immense-bear-stirring.ngrok-free.app'
         ],
         allowMethods: [
           apigwv2.CorsHttpMethod.GET,
