@@ -11,7 +11,17 @@ export const handler = async (event: any) => {
   if (!url) return { statusCode: 400, body: 'Missing "url" in body' }
 
   // ---- 1. Download the HTML ------------------------------------------------
-  const r = await fetch(url, { redirect: 'follow' })
+  const r = await fetch(url, {
+    redirect: 'follow',
+    headers: {
+      // Pretend to be Chrome on Windows – any modern UA works
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      // These two aren’t strictly required but help some WAF rules
+      'Accept-Language': 'en-US,en;q=0.9',
+      Accept: 'text/html,application/xhtml+xml'
+    }
+  })
   if (!r.ok) {
     return { statusCode: 400, body: `Could not fetch (${r.status})` }
   }
