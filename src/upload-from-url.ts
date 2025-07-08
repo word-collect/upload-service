@@ -15,16 +15,16 @@ export const handler = async (event: any) => {
   if (!r.ok) {
     return { statusCode: 400, body: `Could not fetch (${r.status})` }
   }
-  const html = await r.text()
+  const text = await r.text()
   const contentType = r.headers.get('content-type') ?? 'text/plain'
 
   // ---- 2. Put it into the uploads bucket under  raw/<sub>/….
-  const key = `raw/${sub}/${uuidv4()}.txt`
+  const key = `raw/${sub}/${uuidv4()}`
   await s3.send(
     new PutObjectCommand({
       Bucket: process.env.BUCKET_NAME!,
       Key: key,
-      Body: html,
+      Body: text,
       ContentType: contentType
     })
   )
