@@ -11,25 +11,15 @@ export const handler = async (event: any) => {
   if (!url) return { statusCode: 400, body: 'Missing "url" in body' }
 
   // ---- 1. Download the HTML ------------------------------------------------
-  const r = await fetch(url, {
-    redirect: 'follow',
-    headers: {
-      // Pretend to be Chrome on Windows – any modern UA works
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-      // These two aren’t strictly required but help some WAF rules
-      'Accept-Language': 'en-US,en;q=0.9',
-      Accept: 'text/html,application/xhtml+xml'
-    }
-  })
+  const r = await fetch(`https://r.jina.ai/${url}`, { redirect: 'follow' })
   if (!r.ok) {
     return { statusCode: 400, body: `Could not fetch (${r.status})` }
   }
   const html = await r.text()
-  const contentType = r.headers.get('content-type') ?? 'text/html'
+  const contentType = r.headers.get('content-type') ?? 'text/plain'
 
   // ---- 2. Put it into the uploads bucket under  raw/<sub>/….
-  const key = `raw/${sub}/${uuidv4()}.html`
+  const key = `raw/${sub}/${uuidv4()}.txt`
   await s3.send(
     new PutObjectCommand({
       Bucket: process.env.BUCKET_NAME!,
