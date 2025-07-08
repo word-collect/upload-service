@@ -50,6 +50,13 @@ export class UploadStack extends Stack {
     })
     bucket.grantPut(requestUrlFn)
 
+    const fetchPageFn = new lambda.NodejsFunction(this, 'FetchPageFn', {
+      entry: 'src/upload-from-url.ts',
+      timeout: Duration.minutes(1),
+      environment: { BUCKET_NAME: bucket.bucketName }
+    })
+    bucket.grantPut(fetchPageFn)
+
     // 3. Tiny HTTP API  ➜  SECURED BY COGNITO JWT  ───────────────────────
 
     // (a) look up the Cognito pool + client that your user-service stack created
@@ -91,6 +98,17 @@ export class UploadStack extends Stack {
       integration: new integ.HttpLambdaIntegration(
         'RequestUrlIntegration',
         requestUrlFn
+      ),
+      authorizer
+    })
+
+    // POST /upload-from-url   { "url": "https://…" }
+    api.addRoutes({
+      path: '/upload-from-url',
+      methods: [apigwv2.HttpMethod.POST],
+      integration: new integ.HttpLambdaIntegration(
+        'FetchPageIntegration',
+        fetchPageFn
       ),
       authorizer
     })
